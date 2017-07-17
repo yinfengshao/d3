@@ -8,42 +8,66 @@ var graphic = svg.append('g').attr('transform', 'translate(' + margin.left + ','
 
 // Define x and y axes.
 
-var x = d3.scaleLinear();
-x.range([0, width]);
+var x = d3.scaleLinear()
+.range([0, width])
+.domain([-1,1]);
 
-var y = d3.scaleBand();
-y.rangeRound([0, height]);
+var y = d3.scaleBand()
+.rangeRound([0, height])
+.paddingInner(0.05);
 
 // Define a categorical z axis, by color.
 
 var z = d3.scaleOrdinal();
-z.range(['#009dff','#66c4ff','#ff9400','#ffbf66']);
+z.range(['#eeeeee','#f2a379','#f27c3d','#f25500','#eeeeee','#79c4f2','#3dacf2','#009df2']);
 
 // Assign parsed data to attributes.
 // This is the beginning of a big open '{' that covers the rest of the graph.
 
 d3.csv('data/likert.csv', function(error, data) {
  data.forEach(function(d) {
-  d.month = timeParser(d.month);
-  d.selfIn = +d.selfIn;
-  d.jointIn = +d.jointIn;
-  d.selfOut = +d.selfOut;
-  d.jointOut = +d.jointOut;
+  d.question = d.question;
+  d.total = +d.disagreeC + (d.disagreeB * 1) + (d.disagreeA * 1) + (d.neutral * 1) + (d.agreeA * 1) + (d.agreeB * 1) + (d.agreeC * 1);
+  d.neg3 = +d.disagreeC / d.total * -1;
+  d.neg2 = +d.disagreeB / d.total * -1;
+  d.neg1 = +d.disagreeA / d.total * -1;
+  d.neuN = +d.neutral / 2 / d.total * -1;
+  d.neuP = +d.neutral / 2 / d.total;
+  d.pos1 = +d.agreeA / d.total;
+  d.pos2 = +d.agreeB / d.total;
+  d.pos3 = +d.agreeC / d.total;
  });
  if(error) throw error;
 
- var keys = ['selfIn', 'jointIn', 'selfOut', 'jointOut'];
+ var keys = ['neuN', 'neg1', 'neg2', 'neg3', 'neuP', 'pos1', 'pos2', 'pos3'];
  var series = d3.stack().keys(keys).offset(d3.stackOffsetDiverging)(data);
 
 // Assign domains to x y and z axes.
 
- x.domain([
-  d3.timeMonth.offset(d3.min(data, function(d) { return d.month; }), -1),
-  d3.timeMonth.offset(d3.max(data, function(d) { return d.month; }), 1)]);
- y.domain([
-  d3.min(data, function(d) { return d.selfOut + d.jointOut; }),
-  d3.max(data, function(d) { return d.selfIn + d.jointIn; })]).nice();
+ y.domain(data.map(function(d) { return d.question; }));
  z.domain(keys);
+
+ console.log(data);
+ console.log(series);
+
+// Draw the bars.
+
+ graphic.append('g')
+ .selectAll('g')
+ .data(series)
+ .enter().append('g')
+ .attr('fill', function(d) { return z(d.key); })
+ .selectAll('rect')
+ .data(function(d) { return d; })
+ .enter().append('rect')
+ .attr('x', x(0))
+ .attr('y', function(d) { return y(d.data.question); })
+ .attr('width', 0)
+ .attr('height', y.bandwidth())
+ .transition(d3.transition().duration(1000))
+ .delay(function(d, i) { return i * 50; })
+ .attr('x', function(d) { return x(d[0]); })
+ .attr('width', function(d) { return x(d[1]) - x(d[0]); });
 
 /*
 
@@ -71,27 +95,6 @@ d3.csv('data/likert.csv', function(error, data) {
  .tickFormat(d3.format('$0'))
  .tickSize(0)
  .tickPadding(tickPadding));
-
-// Draw the bars.
-
- var barPadding = 2;
-
- graphic.append('g')
- .selectAll('g')
- .data(series)
- .enter().append('g')
- .attr('fill', function(d) { return z(d.key); })
- .selectAll('rect')
- .data(function(d) { return d; })
- .enter().append('rect')
- .attr('x', function(d) { return x(d.data.month) + barPadding; })
- .attr('y', y(0))
- .attr('width', function(d) { return x(d3.timeMonth.offset(d.data.month, 1)) - x(d.data.month) - barPadding - 1 })
- .attr('height', 0)
- .transition(d3.transition().duration(500))
- .delay(function(d, i) { return (series[0].length - i) * 20; })
- .attr('y', function(d) { return y(d[1]); })
- .attr('height', function(d) { return y(d[0]) - y(d[1]); });
 
 // Draw color legend.
 
