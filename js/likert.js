@@ -28,11 +28,11 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  var groups = unique(data.map(function(d) { return d.Group; }));
  var keys = data.columns.slice(2);
 
-// Select the SVG and apply basic formatting.
+// Apply basic formatting.
 
  var svg = d3.select('svg');
  var margin = {top:40, right:20, bottom:20, left:80};
- var barWidth = 160;
+ var barWidth = 200;
  var barHeight = 40;
  var width = barWidth * questions.length;
  var height = barHeight * groups.length;
@@ -45,8 +45,8 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  var x = d3.scaleBand()
  .domain(questions)
  .rangeRound([0, width])
- .paddingInner(0.05)
- .paddingOuter(0.05);
+ .paddingInner(0.2)
+ .paddingOuter(0.1);
 
  var y = d3.scaleBand()
  .domain(groups)
@@ -54,11 +54,15 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  .paddingInner(0.05)
  .paddingOuter(0.05);
 
-// Define x axis for each Likert scale.
+// Define x and y axes for each Likert scale.
 
  var xInner = d3.scaleLinear()
  .domain([-1, 1])
  .rangeRound([0, x.bandwidth()]);
+
+ var yInner = d3.scaleLinear()
+ .domain([0, 1])
+ .rangeRound([0, y.bandwidth()]);
 
 // Define Likert scale colors.
 
@@ -70,6 +74,8 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  console.log(questions);
  console.log(groups);
 
+// Draw legend for questions and groups.
+
  graphic.append('g')
  .attr('class', 'axis')
  .call(d3.axisTop(x)
@@ -80,12 +86,25 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  .call(d3.axisLeft(y)
  .tickSize(0));
 
+// Draw Likert axis for each column.
+
+ graphic.append('g')
+ .selectAll('g')
+ .data(questions)
+ .enter().append('g')
+ .attr('transform', function(d) { return 'translate(' + x(d) + ', ' + height + ')'; })
+ .call(d3.axisBottom(xInner)
+ .ticks(1)
+ .tickFormat(''));
+
+// Draw Likert bars.
+
  graphic.append('g')
  .selectAll('rect')
  .data(data)
  .enter().append('rect')
  .attr('x', function(d) { return x(d.Question); })
- .attr('y', function(d) { return y(d.Group); })
+ .attr('y', function(d) { return y(d.Group) + yInner(0.25); } )
  .attr('width', 20)
  .attr('height', 20)
  .attr('fill', color(keys[2]));
