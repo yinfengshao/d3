@@ -13,13 +13,13 @@ function unique(arr) {
  return newarr;
 }
 
-// Function to turn data with 'neutral' into d3-friendly arrays using d3.stack().offset().
+// Function to turn histogrammed Likert data with into d3 arrays, using d3.stack().offset().
 
 function likert(series, order) {
  if(!((n = series.length) > 1)) return;
- var mid = Math.round((order.length - 1) / 2);
+ var mid = (order.length - 1) / 2;
  for(var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
-  for(yp = yn = 0, i = mid; i < n; ++i) {
+  for(yp = yn = 0, i = Math.ceil(mid); i < n; ++i) {
    dy = (d = series[order[i]][j])[1] - d[0];
    if(i === mid) {
     yp += dy / 2;
@@ -28,7 +28,7 @@ function likert(series, order) {
     d[1] = yp += dy;
    }
   }
-  for(yp = yn = 0, i = mid; i >= 0; --i) {
+  for(yp = yn = 0, i = Math.floor(mid); i >= 0; --i) {
    dy = (d = series[order[i]][j])[1] - d[0];
    if(i === mid) {
     d[1] = yp + dy / 2;
@@ -141,15 +141,9 @@ d3.csv('data/likert.csv', function(d, i, columns) {
 
 // Draw Likert bars.
 
- if(keys.length % 2 === 1) {
-  var series = d3.stack().keys(keys).offset(likert)(data);
- } else if(keys.length % 2 === 0) {
-  var series = d3.stack().keys(keys).offset(d3.stackOffsetDiverging)(data);
- }
-
  graphic.append('g')
  .selectAll('rect')
- .data(series)
+ .data(d3.stack().keys(keys).offset(likert)(data))
  .enter().append('g')
  .attr('fill', function(d) { return color(d.index); })
  .selectAll('rect')
