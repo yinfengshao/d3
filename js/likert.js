@@ -15,7 +15,7 @@ function unique(arr) {
 
 // Function to turn data into d3-friendly arrays. Passed as argument to d3.stack().offset().
 
-function likertSeven(series, order) {
+function likert(series, order) {
  if(!((n = series.length) > 1)) return;
  for(var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
   for(yp = yn = 0, i = 3; i < n; ++i) {
@@ -70,8 +70,8 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  var x = d3.scaleBand()
  .domain(questions)
  .rangeRound([0, width])
- .paddingInner(0.2)
- .paddingOuter(0.1);
+ .paddingInner(0.05)
+ .paddingOuter(0);
 
  var y = d3.scaleBand()
  .domain(groups)
@@ -89,9 +89,8 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  .domain([0, 1])
  .rangeRound([0, y.bandwidth()]);
 
- var color = d3.scaleOrdinal()
- .domain(keys)
- .range(['#f25500','#f27c3d','#f2a379','#eeeeee','#79c4f2','#3dacf2','#009df2']);
+ var color = d3.scaleSequential(d3.interpolateRdBu)
+ .domain([0, keys.length - 1]);
 
 // Draw legend for questions and groups.
 
@@ -139,22 +138,20 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  .attr('width', 1)
  .attr('height', height);
 
- console.log(d3.stack().keys(keys).offset(likertSeven)(data));
-
 // Draw Likert bars.
 
  graphic.append('g')
  .selectAll('rect')
- .data(d3.stack().keys(keys).offset(likertSeven)(data))
+ .data(d3.stack().keys(keys).offset(likert)(data))
  .enter().append('g')
- .attr('fill', function(d) { return color(d.key); })
+ .attr('fill', function(d) { return color(d.index); })
  .selectAll('rect')
  .data(function(d) { return d; })
  .enter().append('rect')
  .attr('x', function(d) { return x(d.data['Question']) + xLikert(0); })
- .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.1); })
+ .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.05); })
  .attr('width', 0)
- .attr('height', yLikert(0.8))
+ .attr('height', yLikert(0.9))
  .transition(d3.transition().duration(1000))
  .attr('x', function(d) { return x(d.data['Question']) + xLikert(d[0]); })
  .attr('width', function(d) { return xLikert(d[1]) - xLikert(d[0]); });
