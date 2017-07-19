@@ -21,8 +21,7 @@ function likertSeven(series, order) {
   for(yp = yn = 0, i = 3; i < n; ++i) {
    dy = (d = series[order[i]][j])[1] - d[0];
    if(i === 3) {
-    d[0] = yp - dy / 2;
-    d[1] = yp += dy / 2;
+    yp += dy / 2;
    } else {
     d[0] = yp;
     d[1] = yp += dy;
@@ -99,23 +98,46 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  graphic.append('g')
  .attr('class', 'axis')
  .call(d3.axisTop(x)
- .tickSize(0));
+ .tickSize(0)
+ .tickPadding(10));
 
  graphic.append('g')
  .attr('class', 'axis')
  .call(d3.axisLeft(y)
- .tickSize(0));
+ .tickSize(0)
+ .tickPadding(10));
 
-// Draw Likert axis for each column.
+// Draw Likert axes for each column.
 
  graphic.append('g')
  .selectAll('g')
  .data(questions)
  .enter().append('g')
- .attr('transform', function(d) { return 'translate(' + x(d) + ', ' + height + ')'; })
+ .attr('class', 'axisLikert')
+ .attr('transform', function(d) { return 'translate(' + x(d) + ', 0)'; })
  .call(d3.axisBottom(xLikert)
  .ticks(1)
  .tickFormat(''));
+
+ graphic.append('g')
+ .selectAll('g')
+ .data(questions)
+ .enter().append('g')
+ .attr('class', 'axisLikert')
+ .attr('transform', function(d) { return 'translate(' + x(d) + ', ' + height + ')'; })
+ .call(d3.axisTop(xLikert)
+ .ticks(1)
+ .tickFormat(''));
+
+ graphic.append('g')
+ .selectAll('rect')
+ .data(questions)
+ .enter().append('rect')
+ .attr('class', 'axisLikert')
+ .attr('x', function(d) { return Math.ceil(x(d) + xLikert(0)); })
+ .attr('y', 0)
+ .attr('width', 1)
+ .attr('height', height);
 
  console.log(d3.stack().keys(keys).offset(likertSeven)(data));
 
@@ -124,17 +146,15 @@ d3.csv('data/likert.csv', function(d, i, columns) {
  graphic.append('g')
  .selectAll('rect')
  .data(d3.stack().keys(keys).offset(likertSeven)(data))
- .enter()
- .append('g')
+ .enter().append('g')
  .attr('fill', function(d) { return color(d.key); })
  .selectAll('rect')
  .data(function(d) { return d; })
- .enter()
- .append('rect')
+ .enter().append('rect')
  .attr('x', function(d) { return x(d.data['Question']) + xLikert(0); })
- .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.2); })
+ .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.1); })
  .attr('width', 0)
- .attr('height', yLikert(0.6))
+ .attr('height', yLikert(0.8))
  .transition(d3.transition().duration(1000))
  .attr('x', function(d) { return x(d.data['Question']) + xLikert(d[0]); })
  .attr('width', function(d) { return xLikert(d[1]) - xLikert(d[0]); });
