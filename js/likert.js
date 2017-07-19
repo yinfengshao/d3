@@ -13,7 +13,7 @@ function unique(arr) {
  return newarr;
 }
 
-// Function to turn data with 'neutral' into d3-friendly arrays. Passed as argument to d3.stack().offset().
+// Function to turn data with 'neutral' into d3-friendly arrays using d3.stack().offset().
 
 function likert(series, order) {
  if(!((n = series.length) > 1)) return;
@@ -142,37 +142,25 @@ d3.csv('data/likert.csv', function(d, i, columns) {
 // Draw Likert bars.
 
  if(keys.length % 2 === 1) {
-  graphic.append('g')
-  .selectAll('rect')
-  .data(d3.stack().keys(keys).offset(likert)(data))
-  .enter().append('g')
-  .attr('fill', function(d) { return color(d.index); })
-  .selectAll('rect')
-  .data(function(d) { return d; })
-  .enter().append('rect')
-  .attr('x', function(d) { return x(d.data['Question']) + xLikert(0); })
-  .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.05); })
-  .attr('width', 0)
-  .attr('height', yLikert(0.9))
-  .transition(d3.transition().duration(1000))
-  .attr('x', function(d) { return x(d.data['Question']) + xLikert(d[0]); })
-  .attr('width', function(d) { return xLikert(d[1]) - xLikert(d[0]); });
+  var series = d3.stack().keys(keys).offset(likert)(data);
  } else if(keys.length % 2 === 0) {
-  graphic.append('g')
-  .selectAll('rect')
-  .data(d3.stack().keys(keys).offset(d3.stackOffsetDiverging)(data))
-  .enter().append('g')
-  .attr('fill', function(d) { return color(d.index); })
-  .selectAll('rect')
-  .data(function(d) { return d; })
-  .enter().append('rect')
-  .attr('x', function(d) { return x(d.data['Question']) + xLikert(0); })
-  .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.05); })
-  .attr('width', 0)
-  .attr('height', yLikert(0.9))
-  .transition(d3.transition().duration(1000))
-  .attr('x', function(d) { return x(d.data['Question']) + xLikert(d[0]); })
-  .attr('width', function(d) { return xLikert(d[1]) - xLikert(d[0]); });
+  var series = d3.stack().keys(keys).offset(d3.stackOffsetDiverging)(data);
  }
+
+ graphic.append('g')
+ .selectAll('rect')
+ .data(series)
+ .enter().append('g')
+ .attr('fill', function(d) { return color(d.index); })
+ .selectAll('rect')
+ .data(function(d) { return d; })
+ .enter().append('rect')
+ .attr('x', function(d) { return x(d.data['Question']) + xLikert(0); })
+ .attr('y', function(d) { return y(d.data['Group']) + yLikert(0.05); })
+ .attr('width', 0)
+ .attr('height', yLikert(0.9))
+ .transition(d3.transition().duration(1000))
+ .attr('x', function(d) { return x(d.data['Question']) + xLikert(d[0]); })
+ .attr('width', function(d) { return xLikert(d[1]) - xLikert(d[0]); });
 
 });
