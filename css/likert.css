@@ -1,3 +1,7 @@
 .axis path {
-  stroke-width: 0;
+ stroke-width: 0;
+}
+
+.axis {
+ font-family: 'questa slab';
 }
