@@ -58,7 +58,7 @@ d3.csv('data/likert.csv', function(d, i, columns) {
 
 // Apply basic formatting.
 
- var svg = d3.select('svg');
+ var svg = d3.select('#likert');
  var margin = {top:40, right:20, bottom:20, left:80};
  var width = 240 * questions.length;
  var height = 40 * groups.length;
